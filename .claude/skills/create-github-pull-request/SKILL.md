@@ -18,14 +18,19 @@ code - that context defends its own bugs. We spawn a **subagent** for it.
 ```bash
 git branch --show-current          # must NOT be main
 git status --short                 # your change is committed, tree clean
-gh auth status
+git remote get-url origin          # derive <owner>/<repo> for the MCP calls
 ```
 
+- The **GitHub MCP server is connected** (`/mcp` shows `github` as `connected`;
+  authenticate once via OAuth if not).
 - On `main`? Create a branch first: `git checkout -b <type>/<short-name>`
   (e.g. `feat/sector-filter`, `fix/partial-sell`).
 - Run the `verify-app` skill so the build/lint/typecheck are green before review.
 
 ## 2. Push the branch
+
+The MCP `create_pull_request` tool opens a PR from a branch that already exists on
+the remote, so push your local commits first (this is local git, not `gh`):
 
 ```bash
 git push -u origin "$(git branch --show-current)"
@@ -50,11 +55,21 @@ Title: **`[type] Short description`** (`feat` / `fix` / `chore` / `docs` /
 - [ ] Tests added/updated where it made sense
 ```
 
-```bash
-gh pr create --base main --title "[feat] ..." --body-file pr.md
+Call the GitHub MCP **`create_pull_request`** tool:
+
+```
+create_pull_request(
+  owner: "<owner>", repo: "<repo>",
+  base:  "main",
+  head:  "<your branch>",
+  title: "[feat] ...",
+  body:  "<the What's in this PR / Test Plan / Checklist body above>"
+)
 ```
 
-Capture the PR number/URL it prints.
+Capture the PR number and URL it returns.
+
+> **CLI fallback:** `gh pr create --base main --title "[feat] ..." --body-file pr.md`.
 
 ## 4. Review in a FRESH subagent (this is the point)
 
@@ -74,18 +89,25 @@ Collect their structured output.
 
 ## 5. Post the findings to the PR
 
-Write the reviewer output to a file and post it as a review, mapping the verdict to
-the review state:
+Post the reviewer output as a PR review, mapping the verdict to the review event.
+Call the GitHub MCP **`create_and_submit_pull_request_review`** tool:
 
-```bash
-# APPROVE (>= 90) / APPROVE WITH NITS (70-89):
-gh pr review <NN> --approve --body-file review.md
-# REQUEST CHANGES (< 70, or any Critical finding):
-gh pr review <NN> --request-changes --body-file review.md
+```
+create_and_submit_pull_request_review(
+  owner: "<owner>", repo: "<repo>", pullNumber: <NN>,
+  event: "APPROVE",           // APPROVE (>= 90) / APPROVE WITH NITS (70-89)
+  // event: "REQUEST_CHANGES", // < 70, or any Critical finding
+  body:  "<the scored review markdown>"
+)
 ```
 
-For findings tied to specific lines, add inline comments via
-`gh api repos/{owner}/{repo}/pulls/{NN}/comments` with `path`, `line`, `body`.
+For findings tied to specific lines, build a review with inline comments instead:
+`create_pending_pull_request_review` → one `add_comment_to_pending_review`
+(`path`, `line`, `body`) per finding → `submit_pending_pull_request_review`
+(`event`, summary `body`).
+
+> **CLI fallback:** `gh pr review <NN> --approve --body-file review.md` (or
+> `--request-changes`); inline via `gh api repos/{owner}/{repo}/pulls/{NN}/comments`.
 
 ## 6. Report back
 
@@ -95,7 +117,7 @@ counts. If the review requested changes, summarize what to fix.
 ## Guardrails
 
 - Pushing, opening a PR, and posting review comments are **outward-facing**.
-  Confirm the PR title/body with the user before `gh pr create`, and note that the
-  review will be posted publicly.
+  Confirm the PR title/body with the user before `create_pull_request`, and note
+  that the review will be posted publicly.
 - The reviewer is advisory: it does not merge. A human merges after the review is
   addressed.

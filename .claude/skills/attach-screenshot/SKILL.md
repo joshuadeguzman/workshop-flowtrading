@@ -83,8 +83,8 @@ Resolve owner/repo/branch instead of hardcoding, then return the block the PR
 body needs:
 
 ```bash
-gh repo view --json nameWithOwner -q .nameWithOwner   # <owner>/<repo>
-git branch --show-current                              # <branch>
+git remote get-url origin      # derive <owner>/<repo> from the remote
+git branch --show-current      # <branch>
 ```
 
 ```markdown
@@ -101,9 +101,11 @@ Before/after reads best as a table:
 ```
 
 `create-pr` splices this under the screenshots line. A direct invocation prints it
-or edits an existing PR: `gh pr edit --body "$(cat <<'EOF' ... EOF)"`. For a
-**recording**, GitHub does not render a raw `.webm` by URL: commit and link it, or
-drag it into the PR comment on github.com.
+or edits an existing PR via the GitHub MCP `update_pull_request` tool (`owner`,
+`repo`, `pullNumber`, `body` with the block spliced in). CLI fallback:
+`gh pr edit --body "$(cat <<'EOF' ... EOF)"`. For a **recording**, GitHub does not
+render a raw `.webm` by URL: commit and link it, or drag it into the PR comment on
+github.com.
 
 ## Notes
 

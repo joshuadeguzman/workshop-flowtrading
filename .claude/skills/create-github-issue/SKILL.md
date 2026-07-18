@@ -1,22 +1,26 @@
 ---
 name: create-github-issue
 description: >
-  Open a well-structured GitHub issue for FlowTrading via the gh CLI, using a
-  standard template so every change starts from a clear, scoped request. Use when
-  you spot a bug, want to propose a feature, or are turning a rough idea into
-  trackable work. This is the first step of the standardized change flow.
+  Open a well-structured GitHub issue for FlowTrading via the GitHub MCP server,
+  using a standard template so every change starts from a clear, scoped request.
+  Use when you spot a bug, want to propose a feature, or are turning a rough idea
+  into trackable work. This is the first step of the standardized change flow.
 ---
 
 # Create a GitHub issue
 
 Every change should start from an issue, so work is visible and scoped before any
-code is written. This skill drafts a consistent issue and files it with `gh`.
+code is written. This skill drafts a consistent issue and files it through the
+**GitHub MCP server** shipped in this repo's `.mcp.json`.
 
 ## Preconditions
 
+- The **GitHub MCP server is connected.** Run `/mcp` in Claude Code; `github`
+  should show `connected` (authenticate once via OAuth if not).
+- Know the target repo. Derive `<owner>/<repo>` from the remote:
+
 ```bash
-gh auth status          # must be authenticated
-gh repo view --json nameWithOwner   # confirm you're on the right repo
+git remote get-url origin   # e.g. github.com/<owner>/<repo>.git
 ```
 
 ## 1. Draft the issue (standard template)
@@ -50,24 +54,31 @@ which files (e.g. `lib/portfolio.ts`, `components/finance/*`).>
 
 ## 2. Pick a type label
 
-`bug`, `feature`, `chore`, or `docs`. Create the label first if it doesn't exist
-(`gh label create <name>` - optional).
+`bug`, `feature`, `chore`, or `docs`. The label must already exist on the repo
+(create it once in the GitHub UI under **Issues → Labels**). If it doesn't exist
+yet, drop it from the call rather than failing the create.
 
 ## 3. File it
 
-Write the body to a file, then:
+Call the GitHub MCP **`create_issue`** tool with the drafted content:
 
-```bash
-gh issue create \
-  --title "<concise imperative title>" \
-  --body-file issue.md \
-  --label "feature"
+```
+create_issue(
+  owner:  "<owner>",
+  repo:   "<repo>",
+  title:  "<concise imperative title>",
+  body:   "<the filled-in template from step 1>",
+  labels: ["feature"]        // omit if the label doesn't exist yet
+)
 ```
 
-`gh issue create` prints the new issue URL - hand it back to the user.
+It returns the new issue number and URL - hand that back to the user.
+
+> **CLI fallback** (if you're not using MCP): write the body to `issue.md`, then
+> `gh issue create --title "..." --body-file issue.md --label "feature"`.
 
 ## Guardrail
 
 Opening an issue posts publicly to the repo. **Draft it, show the user the title
-and body, and confirm before running `gh issue create`.** Don't invent details
+and body, and confirm before calling `create_issue`.** Don't invent details
 you're unsure of - leave a `TODO` for the human instead.

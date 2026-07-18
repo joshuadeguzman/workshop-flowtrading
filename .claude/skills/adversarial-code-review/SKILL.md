@@ -22,10 +22,17 @@ score it against a rubric, and (optionally) post the result to GitHub.
 ```bash
 git status --short
 git diff                      # unstaged + staged working changes
-# ...or for a PR:
-gh pr view <N> --json title,body,headRefName
-gh pr diff <N>
 ```
+
+For a PR, read it through the **GitHub MCP server** (`/mcp` shows `github`
+connected; derive `<owner>/<repo>` from `git remote get-url origin`):
+
+```
+get_pull_request(owner: "<owner>", repo: "<repo>", pullNumber: <N>)        // title, body, head
+get_pull_request_diff(owner: "<owner>", repo: "<repo>", pullNumber: <N>)   // the diff
+```
+
+> **CLI fallback:** `gh pr view <N> --json title,body,headRefName` and `gh pr diff <N>`.
 
 Read the diff **and** enough surrounding code to judge it. If a PR body or issue
 states the intended behavior, treat that as the spec. If there's no written spec,
@@ -92,23 +99,33 @@ clean, say so.
 ## 5. Post to GitHub (optional)
 
 Only when asked, and only after the review is written. Post the markdown from
-step 4 as a PR comment:
+step 4 through the **GitHub MCP server**.
 
-```bash
-# Save the review to a file first, then:
-gh pr comment <N> --body-file review.md
+For a plain comment on the PR conversation, call **`add_issue_comment`** (a PR is
+an issue, so `issue_number` is the PR number):
+
+```
+add_issue_comment(owner: "<owner>", repo: "<repo>", issue_number: <N>, body: "<review markdown>")
 ```
 
-For a formal review with an explicit state:
+For a formal review with an explicit state, call
+**`create_and_submit_pull_request_review`** with the matching `event`:
 
-```bash
-gh pr review <N> --comment  --body-file review.md   # neutral comment
-gh pr review <N> --request-changes --body-file review.md
-gh pr review <N> --approve  --body-file review.md
+```
+create_and_submit_pull_request_review(
+  owner: "<owner>", repo: "<repo>", pullNumber: <N>,
+  event: "COMMENT" | "REQUEST_CHANGES" | "APPROVE",
+  body:  "<review markdown>"
+)
 ```
 
-To attach findings to specific lines, use `gh api` on
-`repos/{owner}/{repo}/pulls/{N}/comments` with `path`, `line`, and `body`.
+To attach findings to specific lines, build a pending review instead:
+`create_pending_pull_request_review` → `add_comment_to_pending_review`
+(`path`, `line`, `body`) per finding → `submit_pending_pull_request_review`.
+
+> **CLI fallback:** `gh pr comment <N> --body-file review.md`, or
+> `gh pr review <N> --comment | --request-changes | --approve --body-file review.md`;
+> inline via `gh api repos/{owner}/{repo}/pulls/{N}/comments`.
 
 > ⚠️ Posting to GitHub is outward-facing. Confirm the PR number and that the user
-> wants it posted before running `gh pr comment` / `gh pr review`.
+> wants it posted before calling `add_issue_comment` / `create_and_submit_pull_request_review`.

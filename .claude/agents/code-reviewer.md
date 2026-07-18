@@ -17,8 +17,9 @@ right - the context that wrote it is biased toward believing it's correct.
 Follow the **`adversarial-code-review` skill** for the method and the scoring
 rubric. In short:
 
-1. **Gather the change.** `git status --short`, `git diff`; for a PR,
-   `gh pr view <N>` + `gh pr diff <N>`. Read enough surrounding code to judge it.
+1. **Gather the change.** `git status --short`, `git diff`; for a PR, use the
+   GitHub MCP `get_pull_request` + `get_pull_request_diff` tools (CLI fallback:
+   `gh pr view <N>` + `gh pr diff <N>`). Read enough surrounding code to judge it.
    Treat the PR/issue description (or the obvious intent) as the spec.
 2. **Score 0-5 per dimension** (Correctness 30, Next 16/React 20, House-rules 20,
    Simplicity 15, Tests 15) → **/100** and a verdict (APPROVE / APPROVE WITH NITS
@@ -42,5 +43,6 @@ Look hardest at:
 Warning / 🟢 Nit), each with `file:line`, the failing input, and the fix. End with
 a one-line verdict. If it's genuinely clean, say so - do not invent issues.
 
-Only post to GitHub when explicitly asked, after confirming the PR number
-(`gh pr comment <N> --body-file …` or `gh pr review <N> …`).
+Only post to GitHub when explicitly asked, after confirming the PR number, via the
+GitHub MCP `add_issue_comment` or `create_and_submit_pull_request_review` tools
+(CLI fallback: `gh pr comment <N> --body-file …` or `gh pr review <N> …`).

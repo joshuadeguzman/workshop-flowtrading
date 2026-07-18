@@ -10,6 +10,9 @@ to steer an AI coding agent well, not memorizing React.
 
 > 📖 **Browsing on GitHub?** Start with the [Workshop guide →](./WORKSHOP.md).
 > It walks you through the whole build, one prompt at a time.
+>
+> 🎤 **Following along live?** The [workshop slides & companion page →](https://joshuamdeguzman.com/claude-workshop)
+> have the deck, links, and setup steps.
 
 ---
 
@@ -114,7 +117,48 @@ is just `@AGENTS.md`, so Claude Code reads the same content - nothing drifts.
 Ask Claude, e.g. *"run the code-reviewer on my recent changes."*
 
 **Contributing?** The standardized change flow (issue → branch → build → verify →
-PR → automatic review) is in **[CONTRIBUTING.md](./CONTRIBUTING.md)**.
+PR → automatic review) is in **[CONTRIBUTING.md](./CONTRIBUTING.md)**. Set up the
+contributor tooling below first.
+
+---
+
+## 🛠️ Contributor tooling setup
+
+The workshop build itself needs only Node + Claude Code (see Prerequisites). The
+**contribution flow** (issues, PRs, auto-review, visual proof, deploy) drives a
+few external tools. You can use them two ways, and they mix freely:
+
+- **MCP servers** (recommended) - this repo ships a [`.mcp.json`](./.mcp.json)
+  with the official **GitHub** and **Vercel** remote MCP servers. Claude Code
+  picks it up automatically when you open the repo. Approve the servers when
+  prompted, then run **`/mcp`** to authenticate each one via OAuth in the browser
+  (no tokens or API keys to copy or commit).
+- **CLIs** - the `.claude/` skills also work through the `gh` and `vercel` CLIs
+  if you'd rather not use MCP. Either path satisfies the flow.
+
+| Tool | Used by | MCP setup | CLI alternative |
+|---|---|---|---|
+| **GitHub** | `create-github-issue`, `create-github-pull-request`, `implement-issue` | Shipped in `.mcp.json`; run `/mcp` and sign in | `brew install gh` then `gh auth login` ([cli.github.com](https://cli.github.com)) |
+| **Vercel** | Deploy (see below) | Shipped in `.mcp.json`; run `/mcp` and sign in | `npm i -g vercel` then `vercel login`, or just import on [vercel.com/new](https://vercel.com/new) |
+| **Playwright** | `e2e-capture`, `attach-screenshot` | not MCP | `npm i -D @playwright/test && npx playwright install chromium` (once, from `apps/web`) |
+| **Claude Code** | Everything in `.claude/` | reads `.mcp.json` | [claude.com/claude-code](https://claude.com/claude-code); sign in on first run |
+
+**Quick check** before you open your first PR:
+
+```bash
+# In Claude Code
+/mcp                                 # github + vercel show "connected"
+
+# In a terminal
+gh auth status                       # (CLI path) GitHub is logged in
+gh repo view --json nameWithOwner    # points at your fork / this repo
+npx playwright --version             # Playwright is installed (for screenshots)
+```
+
+> The `.mcp.json` only lists **remote, OAuth-based** servers, so it holds no
+> secrets and is safe to commit. Each contributor authenticates with their own
+> account via `/mcp`. If you prefer different MCP servers, edit your own Claude
+> Code config; the skills work with either the MCP servers or the CLIs.
 
 ---
 
@@ -133,13 +177,14 @@ No `basePath`, no static export, no GitHub Actions. See the deploy section in
 
 ## 📚 Reference
 
+- [Workshop slides & companion page](https://joshuamdeguzman.com/claude-workshop) - the deck and live-session links
 - [Claude Code docs](https://docs.claude.com/en/docs/claude-code)
 - [Next.js App Router](https://nextjs.org/docs/app)
 - The seeded data and its quirks are documented at the top of `apps/web/data/stocks.ts`.
 
 ### Credit
 
-Built for a Claude Code workshop by [@joshuadeguzman](https://github.com/joshuadeguzman).
+Built for a [Claude Code workshop](https://joshuamdeguzman.com/claude-workshop) by [@joshuadeguzman](https://github.com/joshuadeguzman).
 The `next-best-practices` skill is adapted from the community
 [claude-code-nextjs-skills](https://github.com/laguagu/claude-code-nextjs-skills)
 collection and the official Next.js docs.

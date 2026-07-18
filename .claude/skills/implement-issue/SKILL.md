@@ -16,9 +16,15 @@ the review is honest.
 
 ## 1. Read the issue (it is the spec)
 
-```bash
-gh issue view <ID> --json number,title,body,labels
+Make sure the **GitHub MCP server is connected** (`/mcp` shows `github`), derive
+`<owner>/<repo>` from `git remote get-url origin`, then read the issue with the
+GitHub MCP **`get_issue`** tool:
+
 ```
+get_issue(owner: "<owner>", repo: "<repo>", issue_number: <ID>)
+```
+
+> **CLI fallback:** `gh issue view <ID> --json number,title,body,labels`.
 
 Treat the **Acceptance criteria** as the contract. If anything is ambiguous, ask
 the user before writing code, or state your interpretation in the PR. Don't invent
@@ -72,6 +78,6 @@ changes, loop back to step 3 for the fixes (a fresh review runs again).
 ## Guardrails
 
 - Pushing, opening the PR, and posting review comments are outward-facing. Confirm
-  the PR title/body before `gh pr create`.
+  the PR title/body before opening the PR (`create_pull_request`).
 - Keep implementation and review separate: do not let this session declare its own
   work correct. The subagent review is the gate.
