@@ -93,3 +93,8 @@ files small; delete stale captures so the repo doesn't bloat.
 
 > The `implement-issue` skill calls this automatically to attach visual proof to
 > the PR it opens.
+>
+> The studio-wide `attach-screenshot` skill (invoked by `create-pr` for visible
+> UI changes) hands off to THIS skill when it runs in this repo, since it already
+> knows the routes, dev-server command, and deterministic-state rules. Keep the
+> `docs/e2e/<feature>/*.png` output convention so those images embed cleanly in a PR.

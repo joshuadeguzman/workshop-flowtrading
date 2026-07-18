@@ -169,6 +169,7 @@ reference. Reach for them instead of re-deriving the same work.
 | `verify-app` | Confirming the app still builds, typechecks, lints, and runs the 4 screens |
 | `new-screen` | Scaffolding a new route/screen that follows the app's conventions |
 | `e2e-capture` | Driving a flow with Playwright and capturing screenshots + a recording |
+| `attach-screenshot` | Capturing screenshots of a change and returning PR-embeddable markdown (used by `create-pr` for UI changes); hands off to `e2e-capture` |
 | `create-github-issue` | Filing a scoped, templated issue to start a change |
 | `create-github-pull-request` | Opening a PR + a fresh-subagent review posted as PR comments |
 | `implement-issue` | Taking a GitHub issue ID end to end: build -> verify -> e2e capture -> reviewed PR |
