@@ -22,6 +22,7 @@ import { cn } from "@workspace/ui/lib/utils"
 import { STOCKS } from "@/data/stocks"
 import { asOfDate, money, shares as fmtShares } from "@/lib/format"
 import { Pnl } from "@/components/finance/pnl"
+import { TradeToast } from "@/components/finance/trade-toast"
 import { useAccount } from "@/hooks/use-account"
 import { useReducedMotion } from "@/hooks/use-reduced-motion"
 import { useSimulation } from "@/contexts/simulation"
@@ -87,6 +88,9 @@ export default function TradePage() {
   const [mode, setMode] = useState<"shares" | "dollars">("dollars")
   const [amountStr, setAmountStr] = useState("")
   const [receipt, setReceipt] = useState<string | null>(null)
+  // Bumped per executed trade so a repeat of the identical trade (same receipt
+  // string) still re-triggers the confirmation toast.
+  const [toastKey, setToastKey] = useState(0)
 
   const sym = stock.symbol
   // Trades execute at the ACTIVE horizon's price (real when Live). This is what
@@ -114,11 +118,12 @@ export default function TradePage() {
   // Highlight the two numbers that change after a trade: cash and your position.
   const cashRef = useRef<HTMLDivElement>(null)
   const positionRef = useRef<HTMLDivElement>(null)
-  const highlightKey = useRef(0)
 
+  // Keyed on toastKey (not receipt): the receipt also changes when the toast
+  // dismisses itself back to null, and that must not re-flash the numbers.
   useGSAP(
     () => {
-      if (reduced || highlightKey.current === 0) return
+      if (reduced || toastKey === 0) return
       const targets = [cashRef.current, positionRef.current].filter(Boolean)
       gsap.fromTo(
         targets,
@@ -126,7 +131,7 @@ export default function TradePage() {
         { backgroundColor: "rgba(0,0,0,0)", duration: 0.9, ease: "power2.out" },
       )
     },
-    { dependencies: [receipt] },
+    { dependencies: [toastKey] },
   )
 
   function submit() {
@@ -136,7 +141,7 @@ export default function TradePage() {
     const verb = side === "buy" ? "Bought" : "Sold"
     setReceipt(`${verb} ${fmtShares(sharesNum)} ${stock.symbol} at ${money(price)} · ${money(total)}`)
     setAmountStr("")
-    highlightKey.current += 1
+    setToastKey((k) => k + 1)
   }
 
   const cashAfter = side === "buy" ? cash - total : cash + total
@@ -283,11 +288,7 @@ export default function TradePage() {
         {side === "buy" ? "Buy" : "Sell"} {stock.symbol}
       </button>
 
-      {receipt && (
-        <p className="text-muted-foreground text-center text-sm" aria-live="polite">
-          {receipt}
-        </p>
-      )}
+      <TradeToast message={receipt} toastKey={toastKey} onDismiss={() => setReceipt(null)} />
 
       {/* Your current position in this stock */}
       <div ref={positionRef} className="border-border rounded-xl border p-4">
