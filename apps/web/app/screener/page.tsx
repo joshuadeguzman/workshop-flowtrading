@@ -7,7 +7,7 @@
 // watchlist. There is deliberately NO "Q2 change" column beyond since-close:
 // quarterOpen/quarterChangePct do not exist in the data and are not faked.
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { ChevronDown, ChevronUp, Star } from "lucide-react"
 
@@ -15,6 +15,12 @@ import { cn } from "@workspace/ui/lib/utils"
 import { STOCKS } from "@/data/stocks"
 import { marketCap, money } from "@/lib/format"
 import { sinceQuarterClose } from "@/lib/portfolio"
+import {
+  loadScreenerPrefs,
+  saveScreenerPrefs,
+  type ScreenerDir,
+  type ScreenerSortKey,
+} from "@/lib/storage"
 import { Pnl } from "@/components/finance/pnl"
 import { FeaturedCard } from "@/components/finance/featured-card"
 import { MarketMovers } from "@/components/finance/market-movers"
@@ -25,8 +31,10 @@ import { useSimulation } from "@/contexts/simulation"
 // (green / red / orange) so the branded cards read as a set, not a row of grey.
 const FEATURED = ["NVDA", "TSLA", "AMZN"]
 
-type SortKey = "symbol" | "price" | "q2" | "sector" | "cap" | "range"
-type Dir = "asc" | "desc"
+// Single source of truth for these unions lives in lib/storage, so the persisted
+// prefs and the table's state can never drift apart.
+type SortKey = ScreenerSortKey
+type Dir = ScreenerDir
 
 const SECTORS = ["All", ...Array.from(new Set(STOCKS.map((s) => s.sector)))]
 
@@ -49,10 +57,36 @@ export default function ScreenerPage() {
   const { has, toggle, hydrated } = useWatchlist()
   const { priceOf } = useSimulation()
 
+  // Start from the deterministic defaults the server renders, then hydrate the
+  // remembered view from localStorage after mount. Same discipline as
+  // useWatchlist/useAccount: reading storage during render would mismatch SSR.
   const [sortKey, setSortKey] = useState<SortKey>("cap")
   const [dir, setDir] = useState<Dir>("desc")
   const [sector, setSector] = useState<string>("All")
   const [starredOnly, setStarredOnly] = useState(false)
+  const [prefsLoaded, setPrefsLoaded] = useState(false)
+
+  useEffect(() => {
+    const apply = () => {
+      const prefs = loadScreenerPrefs()
+      if (!prefs) return
+      setSortKey(prefs.sortKey)
+      setDir(prefs.dir)
+      setSector(prefs.sector)
+      setStarredOnly(prefs.starredOnly)
+    }
+    apply()
+    // Deliberate hydration read: localStorage is only available post-mount.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPrefsLoaded(true)
+  }, [])
+
+  // Persist on change, but only once we've hydrated, so the initial defaults
+  // don't clobber a saved view before it's been read back in.
+  useEffect(() => {
+    if (!prefsLoaded) return
+    saveScreenerPrefs({ sortKey, dir, sector, starredOnly })
+  }, [prefsLoaded, sortKey, dir, sector, starredOnly])
 
   const rows = useMemo(() => {
     const enriched = STOCKS.map((s) => {
