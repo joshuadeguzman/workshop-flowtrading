@@ -90,3 +90,20 @@ export function asOfDate(iso: string): string {
     timeZone: "UTC",
   })
 }
+
+/**
+ * "Jul 18, 2026, 3:42 PM" for a trade's execution timestamp (ms since epoch).
+ * Unlike asOfDate (the seeded snapshot, pinned to UTC), a trade timestamp is a
+ * real wall-clock event the user created, so it is shown in the viewer's local
+ * time. Only ever rendered after hydration (trades load post-mount), so the
+ * locale-dependent output never causes an SSR mismatch.
+ */
+export function tradeTime(ms: number): string {
+  return new Date(ms).toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  })
+}
