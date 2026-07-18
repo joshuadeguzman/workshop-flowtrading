@@ -12,6 +12,7 @@ import { INITIAL_CASH, type Trade } from "@/lib/portfolio"
 // saved under the old $10,000 baseline so everyone starts fresh on the new one.
 const ACCOUNT_KEY = "flowtrading.account.v2"
 const WATCHLIST_KEY = "flowtrading.watchlist.v1"
+const SCREENER_KEY = "flowtrading.screener.v1"
 
 /** Persisted account: starting cash minus buys plus sells, and the full log of
  *  trades that got us there. Positions are derived from `trades`, never stored. */
@@ -62,6 +63,54 @@ export function loadWatchlist(): string[] {
 export function saveWatchlist(symbols: string[]): void {
   if (!hasStorage()) return
   window.localStorage.setItem(WATCHLIST_KEY, JSON.stringify(symbols))
+}
+
+// The screener's remembered view: which column it's sorted by and in which
+// direction, the active sector chip, and whether it's showing the watchlist
+// only. Purely UI state, so it lives here and never touches account/trade data.
+export type ScreenerSortKey = "symbol" | "price" | "q2" | "sector" | "cap" | "range"
+export type ScreenerDir = "asc" | "desc"
+
+export interface ScreenerPrefs {
+  sortKey: ScreenerSortKey
+  dir: ScreenerDir
+  sector: string
+  starredOnly: boolean
+}
+
+const SORT_KEYS: readonly ScreenerSortKey[] = ["symbol", "price", "q2", "sector", "cap", "range"]
+
+/** Load remembered screener prefs, or `null` when there's nothing valid saved so
+ *  the caller keeps its defaults. Every field is validated: a hand-edited or
+ *  stale blob should be ignored, not fed into the sort/filter. */
+export function loadScreenerPrefs(): ScreenerPrefs | null {
+  if (!hasStorage()) return null
+  try {
+    const raw = window.localStorage.getItem(SCREENER_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as Partial<ScreenerPrefs>
+    if (
+      !SORT_KEYS.includes(parsed.sortKey as ScreenerSortKey) ||
+      (parsed.dir !== "asc" && parsed.dir !== "desc") ||
+      typeof parsed.sector !== "string" ||
+      typeof parsed.starredOnly !== "boolean"
+    ) {
+      return null
+    }
+    return {
+      sortKey: parsed.sortKey as ScreenerSortKey,
+      dir: parsed.dir,
+      sector: parsed.sector,
+      starredOnly: parsed.starredOnly,
+    }
+  } catch {
+    return null
+  }
+}
+
+export function saveScreenerPrefs(prefs: ScreenerPrefs): void {
+  if (!hasStorage()) return
+  window.localStorage.setItem(SCREENER_KEY, JSON.stringify(prefs))
 }
 
 // A same-tab change event. localStorage's native "storage" event only fires in
