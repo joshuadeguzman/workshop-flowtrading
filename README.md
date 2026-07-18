@@ -112,9 +112,19 @@ is just `@AGENTS.md`, so Claude Code reads the same content - nothing drifts.
 | `create-github-pull-request` | Opening a PR + an auto fresh-context review posted to the PR |
 | `implement-issue` | A GitHub issue ID, taken end to end into a reviewed PR with visual proof |
 
-**Subagents** (`.claude/agents/`): `code-reviewer` (adversarial, scored),
-`compliance-reviewer` (house-rules enforcer), `test-writer`, and `test-runner`.
-Ask Claude, e.g. *"run the code-reviewer on my recent changes."*
+**Subagents** (`.claude/agents/`): `feature-builder` (implements a scoped change),
+`code-reviewer` (adversarial, scored), `compliance-reviewer` (house-rules enforcer),
+`test-writer`, and `test-runner`. Ask Claude, e.g. *"run the code-reviewer on my
+recent changes."*
+
+**Agent teams (experimental).** This repo enables Claude Code's
+[agent teams](https://code.claude.com/docs/en/agent-teams.md) via
+`.claude/settings.json` (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`), so you can run
+several of the agents above **in parallel as teammates** that share a task list and
+message each other. Try: *"Spawn a team to implement issue #N: feature-builder
+builds it, test-writer adds tests, test-runner checks it, then code-reviewer and
+compliance-reviewer gate it."* Requires Claude Code ≥ 2.1.178; teammates aren't
+restored by `/resume`, and split-pane view needs tmux or iTerm2.
 
 **Contributing?** The standardized change flow (issue → branch → build → verify →
 PR → automatic review) is in **[CONTRIBUTING.md](./CONTRIBUTING.md)**. Set up the

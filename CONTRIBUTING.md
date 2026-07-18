@@ -69,7 +69,9 @@ to the PR. You can also run them any time: *"run the code-reviewer on my changes
 > Shortcut: **`implement-issue`** runs the whole flow (steps 2-6 below) for a
 > single issue ID, including the Playwright capture and the reviewed PR.
 
-**Subagents:** `code-reviewer`, `compliance-reviewer`, `test-writer`, `test-runner`.
+**Subagents:** `feature-builder`, `code-reviewer`, `compliance-reviewer`,
+`test-writer`, `test-runner`. With agent teams enabled (see below) they can run in
+parallel as teammates instead of one at a time.
 
 ---
 

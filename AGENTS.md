@@ -181,10 +181,17 @@ The standard change flow (issue → branch → build → verify → PR → revie
 
 | Agent | Purpose |
 |---|---|
+| `feature-builder` | Implements a scoped change (feature/fix/refactor) following these rules; hands tests to `test-writer` and review to the reviewers |
 | `code-reviewer` | Adversarial, scored review (Next 16 + general bugs); can post to a PR |
 | `compliance-reviewer` | Enforces these house rules (data integrity, P&L a11y, formatting, no live data) |
 | `test-writer` | Writes tests for changed code following `write-tests` |
 | `test-runner` | Runs the test suite + build/lint and reports (optionally fixes) failures |
+
+**Agent teams (experimental).** `.claude/settings.json` sets
+`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`, so these agents can run **in parallel as
+teammates** (shared task list, direct messaging) instead of one at a time, e.g.
+`feature-builder` builds while `test-writer` drafts tests, then the reviewers gate.
+See the [agent teams docs](https://code.claude.com/docs/en/agent-teams.md).
 
 ---
 
