@@ -38,15 +38,28 @@ export default function DashboardPage() {
       <AccountSummary summary={summary} />
 
       <section aria-labelledby="holdings-heading" className="flex flex-col gap-3">
-        <div className="flex items-baseline justify-between">
+        <div className="flex items-baseline justify-between gap-3">
           <h2 id="holdings-heading" className="text-sm font-medium">
             Holdings
           </h2>
-          {holdings.length > 0 && (
-            <span className="text-muted-foreground font-mono text-xs">
-              {holdings.length} {holdings.length === 1 ? "position" : "positions"}
-            </span>
-          )}
+          <div className="flex items-baseline gap-3">
+            {holdings.length > 0 && (
+              <span className="text-muted-foreground font-mono text-xs">
+                {holdings.length} {holdings.length === 1 ? "position" : "positions"}
+              </span>
+            )}
+            {/* The log behind these positions. Only offered once there is a
+                trade to look at. */}
+            {hydrated && trades.length > 0 && (
+              <Link
+                href="/history"
+                className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 rounded-sm text-xs outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                History
+                <ArrowRight className="size-3.5" aria-hidden="true" />
+              </Link>
+            )}
+          </div>
         </div>
 
         {/* Only decide "empty" once hydrated, so a funded account never flashes
