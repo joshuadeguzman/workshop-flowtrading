@@ -126,6 +126,37 @@ builds it, test-writer adds tests, test-runner checks it, then code-reviewer and
 compliance-reviewer gate it."* Requires Claude Code ≥ 2.1.178; teammates aren't
 restored by `/resume`, and split-pane view needs tmux or iTerm2.
 
+```mermaid
+flowchart TB
+    Lead["🧭 Lead session (you + Claude Code)<br/>delegates and coordinates, does not micromanage"]
+    Tasks[("📋 Shared task list")]
+    Lead <--> Tasks
+
+    subgraph Team["Teammates: independent sessions running in parallel"]
+        direction LR
+        FB["🔨 feature-builder<br/>implements the change"]
+        TW["🧪 test-writer<br/>adds tests"]
+        TR["✅ test-runner<br/>build, lint, typecheck"]
+        CR["🔎 code-reviewer<br/>quality gate"]
+        CO["📏 compliance-reviewer<br/>house-rules gate"]
+    end
+
+    Tasks <--> FB
+    Tasks <--> TW
+    Tasks <--> TR
+    Tasks <--> CR
+    Tasks <--> CO
+
+    FB -. "message" .-> TW
+    TW -. "message" .-> TR
+    FB -. "hand off" .-> CR
+    CR -. "message" .-> CO
+```
+
+> Unlike plain subagents (one at a time, reporting only to the lead), teammates run
+> **in parallel**, pull from a **shared task list**, and **message each other**
+> directly. The lead coordinates instead of doing every step itself.
+
 **Contributing?** The standardized change flow (issue → branch → build → verify →
 PR → automatic review) is in **[CONTRIBUTING.md](./CONTRIBUTING.md)**. Set up the
 contributor tooling below first.
