@@ -1,0 +1,6 @@
+
+# Playwright raw run output (videos/traces). Keep only curated screenshots in docs/e2e.
+apps/web/e2e/.artifacts/
+apps/web/test-results/
+apps/web/playwright-report/
+.vercel
